@@ -15,7 +15,7 @@ require(viridis)
 require(stringr)
 require(mapview)
 require(rgeomex)
-
+require(magrittr)
 mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:32, pad = "0", width = 2, side = "left")), palette = viridis::viridis){
 
     # Step 1. load the dengue dataset ####
