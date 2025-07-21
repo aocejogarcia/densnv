@@ -19,7 +19,7 @@ require(magrittr)
 mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:32, pad = "0", width = 2, side = "left")), palette = viridis::viridis){
 
     # Step 1. load the dengue dataset ####
-    x_serotipo <- dplyr::read_delim(path_sinave,
+    x_serotipo <- readr::read_delim(path_sinave,
                                     locale = locale(encoding = "latin1"),
                                     quote = "",
                                     comment = "") %>%
