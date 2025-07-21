@@ -27,7 +27,7 @@ mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:
 
     # Step 1. load the dengue dataset ####
     x_serotipo <- readr::read_delim(path_sinave, delim = "|",
-                                    locale = locale(encoding = "latin1"),
+                                    locale = reader::locale(encoding = "latin1"),
                                     quote = "",
                                     comment = "") %>%
         dplyr::filter(ESTATUS_CASO == 2) %>%
@@ -78,7 +78,7 @@ mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:
 
     # Step 1. load the dengue dataset ####
     x_casos <- readr::read_delim(path_sinave, delim = "|",
-                                    locale = locale(encoding = "latin1"),
+                                    locale = reader::locale(encoding = "latin1"),
                                     quote = "",
                                     comment = "") %>%
         dplyr::filter(ESTATUS_CASO == 2) %>%
