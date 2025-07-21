@@ -1,1 +1,2 @@
 exportPattern("^[[:alpha:]]+")
+use_pipe(export = TRUE)
