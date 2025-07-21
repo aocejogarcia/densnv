@@ -1,3 +1,3 @@
-if (FALSE) { # \dontrun{
-use_pipe()
-} # }
+#' @importFrom magrittr %>%
+#' @export
+magrittr::`%>%`
