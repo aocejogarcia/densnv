@@ -70,7 +70,7 @@ mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:
         dplyr::filter(CVE_EDO_REP %in% c(cve_edo))
 
     # Step 1. load the dengue dataset ####
-    x_casos <- readr::read_delim(path_sinave,
+    x_casos <- readr::read_delim(path_sinave, delim = "|",
                                     locale = locale(encoding = "latin1"),
                                     quote = "",
                                     comment = "") %>%
