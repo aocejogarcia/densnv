@@ -8,20 +8,47 @@
 #' @export
 #'
 #' @examples 1+1
-cases_week <- function(path, mpo, year){
+
+cases_week <- function(path = 'DENGUE2_.txt', edo = NULL, mpo = NULL, year = year(Sys.Date())){
     # Hospitalizados ####
-    a <- densnv::read(path = path,
-                      vbd = "DEN",
-                      complete = TRUE) |>
-        dplyr::filter(ANO == year) |>
-        dplyr::filter(ESTATUS_CASO  %in% c(1, 2)) |>
-        dplyr::filter(DES_MPO_REP %in% c(mpo)) |>
-        dplyr::group_by(SEM, MANEJO) |>
-        dplyr::summarise(n = dplyr::n(),
-                         .groups = "drop") |>
+    if (edo == NULL & mpo == NULL){
+    a <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2))
+        } else if (edo != NULL & mpo == NULL){
+        a <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_EDO_REP, pattern = edo))
+        } else if (edo == NULL & mpo != NULL){
+        a <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_MPO_REP, pattern = mpo))
+        } else if (edo != NULL & mpo != NULL){
+        a <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_EDO_REP, pattern = edo),
+                      stringr::str_detect(DES_MPO_REP, pattern = mpo))
+    }
+    a <- a %>%
+        dplyr::count(SEM, MANEJO) %>%
         dplyr::mutate(MANEJO = ifelse(MANEJO == 1,
                                       "Hospitalizado",
-                                      "Ambulatorio")) |>
+                                      "Ambulatorio")) %>%
         ggplot2::ggplot() +
         ggplot2::geom_line(ggplot2::aes(x = SEM,
                                         y = n,
@@ -51,28 +78,58 @@ cases_week <- function(path, mpo, year){
                        legend.box = ggplot2::element_blank())
 
     # estimados ####
-    b <- densnv::read(path = path,
-                      vbd = "DEN",
-                      complete = TRUE) |>
-        dplyr::filter(ANO == year) |>
-        dplyr::filter(DES_MPO_REP %in% c(mpo)) |>
-        #dplyr::mutate(week = lubridate::epiweek(FEC_INI_SIGNOS_SINT)) |>
-        dplyr::group_by(DES_MPO_REP, SEM, ESTATUS_CASO) |>
-        dplyr::summarise(n = dplyr::n(),
-                         .groups = "drop") |>
-        tidyr::pivot_wider(id_cols = c(DES_MPO_REP, SEM),
-                           names_from = ESTATUS_CASO,
+        if (edo == NULL & mpo == NULL){
+    b <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2))
+        } else if (edo != NULL & mpo == NULL){
+        b <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_EDO_REP, pattern = edo))
+        } else if (edo == NULL & mpo != NULL){
+        b <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_MPO_REP, pattern = mpo))
+        } else if (edo != NULL & mpo != NULL){
+        b <- readr::read_delim(path, 
+                           delim = '|',
+                           locale = readr::locale(encoding = 'latin1'),
+                           comment = '',
+                           quote = '') %>%
+        dplyr::filter(ANO == year, ESTATUS_CASO  %in% c(1, 2)) %>%
+        dplyr::filter(stringr::str_detect(DES_EDO_REP, pattern = edo),
+                      stringr::str_detect(DES_MPO_REP, pattern = mpo))
+    }
+    b <- b %>%
+        count(DES_MPO_REP, SEM, ESTATUS_CASO) %>%
+        tidyr::pivot_wider(names_from = ESTATUS_CASO,
                            values_fill = 0,
-                           values_from = n) |>
+                           values_from = n) %>%
+        dplyr::full_join(
+            dplyr::tibble(DES_MPO_REP = NA, SEM = NA, `1` = NA, `2` = NA, `3` = NA)
+            ) %>%
+        dplyr::filter(!is.na(DES_MPO_REP)) %>%
+        replace(is.na(.), 0 ) %>%
         dplyr::rename(probable = `1`,
                       confirmado =`2`,
-                      descartado = `3`) |>
+                      descartado = `3`) %>%
         dplyr::mutate(Porcentaje_Positividad = round((confirmado/(confirmado + descartado))*100,
                                                      digits = 0),
-                      estimados = ((Porcentaje_Positividad/100) * probable) + confirmado) |>
+                      estimados = ((Porcentaje_Positividad/100) * probable) + confirmado) %>%
         dplyr::select(DES_MPO_REP, SEM,
                       probable, confirmado,
-                      estimados) |>
+                      estimados) %>%
         tidyr::pivot_longer(cols = c(probable, confirmado,
                                      estimados),
                             names_to = "status",
