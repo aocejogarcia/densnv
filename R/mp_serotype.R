@@ -11,16 +11,6 @@
 
 usethis::use_pipe(export = TRUE)
 
-
-require(dplyr)
-require(tidyr)
-require(readr)
-require(viridis)
-require(stringr)
-require(mapview)
-require(rgeomex)
-require(magrittr)
-
 #' @export
 
 mp_serotype <- function(path_sinave = 'DENGUE2_.txt', cve_edo = paste(str_pad(1:32, pad = "0", width = 2, side = "left")), palette = viridis::viridis){
